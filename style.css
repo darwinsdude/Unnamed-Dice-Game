@@ -1,0 +1,19 @@
+/* Header */
+header{
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+
+}
+
+header h1{
+    padding: 10px 0;
+    font-size: 3rem;
+}
+
+#diceImage{
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+}
