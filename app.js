@@ -10,12 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
         6: 'dice_images/6.png'
     };
 
-    // Initialize the dice outside of the click handler to persist its state across rolls
-    const myDice = new CustomDice(6, {}, images);
+    // Initialize an array of 6 CustomDice objects
+    const dice = [];
+    for (let i = 0; i < 6; i++) {
+        dice.push(new CustomDice(6, {}, images));
+    }
 
+    // This is where the new code block goes
     document.getElementById('rollButton').addEventListener('click', () => {
-        // Roll the dice and update the image
-        myDice.roll();
-        document.getElementById('diceImage').src = myDice.getCurrentSideImage();
+        dice.forEach((die, index) => {
+            die.roll();
+            // Update the image for each die
+            document.querySelectorAll('.diceImage')[index].src = die.getCurrentSideImage();
+        });
     });
 });
