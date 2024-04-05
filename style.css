@@ -1,43 +1,86 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* Header */
-header{
+header {
     background-color: #333;
     color: #fff;
     text-align: center;
-
+    padding-bottom: 20px; /* Added padding for spacing below header items */
 }
 
-header h1{
-    padding: 10px 0;
+header h1 {
+    padding: 20px 0;
     font-size: 3rem;
-    margin-bottom: 0px;
+    margin: 0;
 }
 
-#scoreContainer{
+/* Target Score Setting */
+header div {
+    margin-top: 20px;
+}
+
+#targetScoreInput, #setTargetScoreBtn {
+    padding: 10px;
+    margin: 5px;
+    font-size: 1rem;
+}
+
+#setTargetScoreBtn {
+    background-color: #444; /* Slightly lighter than the header for contrast */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Score Container */
+#scoreContainer {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 0 auto;
+    justify-content: space-around; /* Adjusted for spacing between score displays */
+    margin: 20px auto; /* Ensures margin is applied on all sides */
+    padding: 20px;
+    background-color: #f2f2f2; /* Light background for contrast with header */
+    color: #333; /* Dark text for readability */
+    width: 80%; /* Control width to prevent stretching on wide screens */
+    border-radius: 10px; /* Rounded corners for aesthetics */
+    box-shadow: 7px 6px 7px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
 }
 
-#rollButton{
-    margin-right:5px;
-    padding: 7px 15px;
+/* Roll Button */
+#rollButton {
+    padding: 10px 20px;
     font-size: 1.5rem;
     background-color: #333;
     color: #fff;
     border: none;
     cursor: pointer;
     border-radius: 10px;
-}
-#diceContainer{
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-   
+    transition: background-color 0.3s ease; /* Smooth transition for interaction */
+    box-shadow: 5px 6px 4px rgba(0, 0, 0, 0.2);
 }
 
-.diceImage{
-    width: 100px;
+#rollButton:hover {
+    background-color: #444; /* Slightly lighter on hover for feedback */
+}
+
+/* Dice Container */
+#diceContainer {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allows dice to wrap on smaller screens */
+    gap: 10px; /* Space between dice */
+    padding: 20px;
+}
+
+.diceImage {
+    width: 100px; /* Fixed size for dice images */
     height: 100px;
-    
+    border-radius: 10px; /* Rounded corners for dice images */
+    box-shadow: 5px 6px 4px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
 }

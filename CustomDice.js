@@ -1,7 +1,7 @@
 export class CustomDice {
-    constructor(sides = 6, specialSides = {}, images = {}) {
+    constructor(sides = 6, specialSides = {}, images = {}, startValue = 1) {
         this.sides = sides;
-        this.currentValue = 1;
+        this.currentValue = startValue;
         this.specialSides = specialSides;
         this.images = images; // Store images for each side
     }
@@ -16,23 +16,37 @@ export class CustomDice {
     }
 
     getPoints() {
+        // Checks if the current side has a special points value
         if (this.specialSides.hasOwnProperty(this.currentValue)) {
             return this.specialSides[this.currentValue];
         }
-        return this.currentValue;
+        // Return default points or another value as needed
+        return this.currentValue; // Consider adjusting based on your game's scoring rules
     }
 
     updateSpecialSide(side, points) {
-        this.specialSides[side] = points;
+        if (side >= 1 && side <= this.sides) {
+            this.specialSides[side] = points;
+        } else {
+            console.error('Invalid side:', side);
+        }
     }
 
-    // Method to update the image for a specific side
     updateSideImage(side, imagePath) {
-        this.images[side] = imagePath;
+        if (side >= 1 && side <= this.sides) {
+            this.images[side] = imagePath;
+        } else {
+            console.error('Invalid side for image update:', side);
+        }
     }
 
-    // Method to get the image for the current side
     getCurrentSideImage() {
-        return this.images[this.currentValue] || 'default.png'; // Return a default image if none is set
+        // Returns the image for the current side, or a default if not set
+        return this.images[this.currentValue] || 'default.png';
+    }
+
+    reset(startValue = 1) {
+        // Resets the dice to its start value or 1 if not specified
+        this.currentValue = startValue;
     }
 }
