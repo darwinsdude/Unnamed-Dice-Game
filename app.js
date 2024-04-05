@@ -54,3 +54,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initially update the current score display
     updateScoreDisplay();
 });
+
