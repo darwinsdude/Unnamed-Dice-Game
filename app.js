@@ -37,6 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return die.getValue();
         });
 
+        diceImages.forEach((img, index) => {
+            img.addEventListener('click', () => {
+                dice[index].toggleSelected(); // Toggle the selected state of the dice
+                img.classList.toggle('selected'); // Visually indicate selection
+            });
+        });
+
         // Update dice images
         diceImages.forEach((img, index) => {
             img.src = dice[index].getCurrentSideImage();

@@ -86,8 +86,8 @@ header div {
 }
 
 .diceImage.selected {
-    border: 3px solid gold; /* Visual feedback for selection */
-    border-radius: 10px; /* Maintain rounded corners */
+    border: 3px solid gold; /* Highlight selected dice */
+    opacity: 0.75; /* Optional: change opacity to indicate selection */
 }
 
 #selectionFeedback {

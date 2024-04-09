@@ -50,4 +50,8 @@ export class CustomDice {
         // Resets the dice to its start value or 1 if not specified
         this.currentValue = startValue;
     }
+
+    toggleSelected() {
+        this.selected = !this.selected;
+    }
 }
