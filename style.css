@@ -84,3 +84,28 @@ header div {
     border-radius: 10px; /* Rounded corners for dice images */
     box-shadow: 5px 6px 4px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
 }
+
+.diceImage.selected {
+    border: 3px solid gold; /* Visual feedback for selection */
+    border-radius: 10px; /* Maintain rounded corners */
+}
+
+#selectionFeedback {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#bankPointsButton {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #4CAF50; /* A green color for the action button */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#bankPointsButton:hover {
+    background-color: #45a049; /* Darker green on hover */
+}

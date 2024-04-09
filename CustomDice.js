@@ -4,6 +4,7 @@ export class CustomDice {
         this.currentValue = startValue;
         this.specialSides = specialSides;
         this.images = images; // Store images for each side
+        this.selected = false; // Add selected property
     }
 
     roll() {

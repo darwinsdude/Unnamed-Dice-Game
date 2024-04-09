@@ -22,12 +22,19 @@
     </div>
     <div id="diceContainer">
         <button id="rollButton">Roll Dice</button>
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
-        <img class="diceImage" src="dice_images/1.png" alt="Dice face">
+        <!-- Adding IDs to each dice image for selection -->
+        <img class="diceImage" id="dice-0" src="dice_images/1.png" alt="Dice face">
+        <img class="diceImage" id="dice-1" src="dice_images/1.png" alt="Dice face">
+        <img class="diceImage" id="dice-2" src="dice_images/1.png" alt="Dice face">
+        <img class="diceImage" id="dice-3" src="dice_images/1.png" alt="Dice face">
+        <img class="diceImage" id="dice-4" src="dice_images/1.png" alt="Dice face">
+        <img class="diceImage" id="dice-5" src="dice_images/1.png" alt="Dice face">
+    </div>
+    <button id="confirmSelectionButton" style="display:none;">Confirm Selection</button>
+    <div id="selectionFeedback">
+        Selected Combination: <span id="selectedCombination">None</span><br>
+        Possible Points: <span id="possiblePoints">0</span><br>
+        <button id="bankPointsButton" style="display:none;">Bank Points</button>
     </div>
     <script type="module" src="CustomDice.js"></script>
     <script type="module" src="app.js"></script>
