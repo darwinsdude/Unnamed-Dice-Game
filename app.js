@@ -67,58 +67,52 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[value] = (acc[value] || 0) + 1;
             return acc;
         }, {});
-
+    
         // Check for six of a kind (automatic win)
         if (Object.values(counts).includes(6)) {
             return "AUTOMATIC_WIN";
         }
-
+    
         // Detect large straight
         const sortedValues = [...diceValues].sort((a, b) => a - b);
         const isLargeStraight = sortedValues.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
-        if (isLargeStraight) return 2000; // Awards 2000 points for a large straight
-
+        if (isLargeStraight) {
+            return 2000; // Awards 2000 points for a large straight
+        }
+    
         // Detect small straight
         const isSmallStraight = sortedValues.slice(0, 5).every((val, i, arr) => i === 0 || val === arr[i - 1] + 1) || sortedValues.slice(1).every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
-        if (isSmallStraight) score += 1500; // Awards 1500 points for a small straight
-
-        // Detect full house (three pairs)
-        const pairs = Object.values(counts).filter(count => count === 2);
-        if (pairs.length === 3) score += 1500; // Awards 1500 points for a full house
-
-        // Scoring for individual 1s and 5s, three, four, or five of a kind
-        Object.keys(counts).forEach(number => {
-            const num = parseInt(number, 10);
-            const count = counts[number];
-
-            // Individual 1s and 5s (not part of a larger set)
-            if (num === 1 && count < 3) score += count * 100;
-            if (num === 5 && count < 3) score += count * 50;
-
-            // Three of a kind
-            if (count === 3) {
-                score += num === 1 ? 1000 : num * 100;
-            }
-            // Four of a kind
-            else if (count === 4) {
-                switch(num) {
-                    case 1: score += 2000; break; // Adjust for your specific four-of-a-kind rules
-                    case 2: score -= 1000; break;
-                    case 3: score += 600; break;
-                    case 4: score += 800; break;
-                    case 5: score += 1000; break;
-                    case 6: score += 1200; break;
-                    default: break;
+        if (isSmallStraight) {
+            score += 1500; // Awards 1500 points for a small straight
+        }
+    
+        // Detect full house (specifically three pairs of different numbers)
+        const pairsCount = Object.values(counts).filter(count => count === 2).length;
+        const isFullHouse = pairsCount === 3;
+        if (isFullHouse) {
+            return score += 1500; // Awards 1500 points for a full house
+        }
+    
+        // Proceed with scoring for individual 1s and 5s, and other combinations
+        // if no straight or full house is detected
+        if (!isLargeStraight && !isSmallStraight && !isFullHouse) {
+            Object.entries(counts).forEach(([number, count]) => {
+                const num = parseInt(number, 10);
+                // Apply scoring for combinations and individual 1s and 5s not in a full house
+                if (count === 1 || (count === 2 && !isFullHouse)) {
+                    score += (num === 1) ? count * 100 : (num === 5) ? count * 50 : 0;
+                } else if (count >= 3) {
+                    // Handle three, four, or five of a kind not part of a full house
+                    if (num === 1) score += count === 3 ? 1000 : 0; // Example for three 1s
+                    if (num !== 1) score += num * 100 * (count - 2); // Simplified scoring for other numbers
                 }
-            }
-            // Five of a kind
-            else if (count === 5) {
-                score += 5000; // Awards 5000 points for five of a kind
-            }
-        });
-
+            });
+        }
+    
         return score;
     }
+    
+    
 
     function updateScoreDisplay() {
         currentScoreSpan.textContent = currentScore;
