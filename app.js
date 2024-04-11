@@ -31,18 +31,39 @@ document.addEventListener('DOMContentLoaded', () => {
     setTargetScoreBtn.addEventListener('click', () => {
         winningScore = parseInt(targetScoreInput.value, 10);
         targetScoreDisplay.textContent = winningScore;
+
     });
+
+    document.getElementById('setAsideButton').addEventListener('click', () => {
+        dice.forEach((die, index) => {
+            if (die.selected) {
+                die.toggleSetAside();  // This will now correctly toggle the set aside state
+                if (die.setAside) { // Check if the die is now set aside
+                    diceImages[index].classList.add('set-aside');
+                    diceImages[index].classList.remove('selected');
+                    die.selected = false; // Ensure the die is no longer marked as selected
+                }
+            }
+        });
+        updatePossiblePointsAndIndicators();  // Recalculate scores with set aside dice excluded
+    }); // This closing parenthesis ends the addEventListener call
+    
 
     document.getElementById('rollButton').addEventListener('click', () => {
         diceRolled = true;
-        dice.forEach(die => {
-            die.roll(); // Roll each die
-        });
+    dice.forEach(die => {
+        if (!die.setAside) {
+            die.roll();
+        }
+    });
+
 
         // Update dice images
         diceImages.forEach((img, index) => {
             img.src = dice[index].getCurrentSideImage();
-            img.classList.remove('selected'); // Reset selection visuals
+            if (!dice[index].setAside) {
+                img.classList.remove('selected');
+            }
         });
 
         resetSelections(); // Reset selections in the game state
@@ -51,12 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     diceImages.forEach((img, index) => {
         img.addEventListener('click', () => {
-            if (!diceRolled) return;
+            if (!diceRolled || dice[index].setAside) return;
             dice[index].toggleSelected(); // Toggle the selected state of the dice
             img.classList.toggle('selected'); // Update the visual representation of the dice to indicate selection
             updatePossiblePointsAndIndicators(); // Recalculate and display possible points based on the new selection
         });
     });
+
+    function canSelectDice(diceIndex) {
+        // Simulate selecting this dice and check if it forms a valid score
+        let testDiceValues = dice.map(die => die.getValue());
+        // Temporarily toggle the selected state to simulate what would happen if it were selected
+        dice[diceIndex].selected = !dice[diceIndex].selected;
+        let score = calculateScore(testDiceValues.filter((_, index) => dice[index].selected));
+        dice[diceIndex].selected = !dice[diceIndex].selected;  // Revert the temporary toggle
+        return score > 0;
+    }
 
     bankPointsButton.addEventListener('click', () => {
         const scoreForSelection = parseInt(document.getElementById('possiblePoints').textContent, 10);
@@ -68,10 +99,116 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updatePossiblePointsAndIndicators() {
-        const selectedDiceValues = dice.filter(die => die.selected).map(die => die.getValue());
+        const selectedDiceValues = dice.filter(die => die.selected && !die.setAside).map(die => die.getValue());
         const scoreForSelection = calculateScore(selectedDiceValues);
         document.getElementById('possiblePoints').textContent = scoreForSelection;
+    
+        // Identify and display scoring hands dynamically
+        const scoringDescriptions = getScoringDescriptions(selectedDiceValues);
+        document.getElementById('selectedCombination').textContent = scoringDescriptions.join(", ");
+    
+        // Determine the validity of the selection for setting aside
+        const isValidSelection = scoringDescriptions.length > 0;
+        const shouldDisplaySetAside = isValidSelection && dice.some(die => die.selected && !die.setAside) && scoreForSelection > 0;
+        document.getElementById('setAsideButton').style.display = shouldDisplaySetAside ? 'block' : 'none';
+    
         bankPointsButton.style.display = scoreForSelection >= 750 ? 'block' : 'none';
+    }
+    
+    function getScoringDescriptions(diceValues) {
+        const counts = diceValues.reduce((acc, value) => {
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {});
+    
+        const descriptions = [];
+    
+        // Handle multiples
+        Object.keys(counts).forEach(num => {
+            if (counts[num] === 3 && num === '1') {
+                descriptions.push('Three 1s (1000 points)');
+            } else if (counts[num] === 3) {
+                descriptions.push(`Three ${num}s (${num * 100} points)`);
+            } else if (counts[num] === 1 && num === '1') {
+                descriptions.push('Single 1 (100 points)');
+            } else if (counts[num] === 2 && num === '1') {
+                descriptions.push('Single 1 (100 points)', 'Single 1 (100 points)');
+            }
+        });
+    
+        // Handle straights and full houses
+        if (isStraight(diceValues)) {
+            descriptions.push('Straight (1500 points)');
+        }
+        if (isFullHouse(diceValues)) {
+            descriptions.push('Full House (1500 points)');
+        }
+    
+        return descriptions;
+    }
+    
+    function isStraight(diceValues) {
+        const uniqueValues = [...new Set(diceValues)];
+        return uniqueValues.length === 6 && Math.max(...uniqueValues) - Math.min(...uniqueValues) === 5;
+    }
+    
+    function isFullHouse(diceValues) {
+        const counts = Object.values(diceValues.reduce((acc, value) => {
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {}));
+        return counts.filter(count => count === 3).length === 1 && counts.filter(count => count === 2).length === 1;
+    }
+    
+    
+    function identifyScoringHands(diceValues) {
+        let counts = diceValues.reduce((acc, value) => {
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {});
+    
+        let hands = [];
+        Object.keys(counts).forEach(num => {
+            switch (counts[num]) {
+                case 1:
+                    if (num === '1') hands.push('Single 1 (100 points)');
+                    if (num === '5') hands.push('Single 5 (50 points)');
+                    break;
+                case 2:
+                    // Pair might not be a scoring hand unless it's part of a full house
+                    break;
+                case 3:
+                    if (num === '1') hands.push('Three 1s (1000 points)');
+                    else if (num === '5') hands.push('Three 5s (500 points)');
+                    else hands.push(`Three ${num}s (${num * 100} points)`);
+                    break;
+                case 4:
+                    hands.push(`Four of a Kind (${num}s)`);
+                    break;
+                case 5:
+                    hands.push('Five of a Kind');
+                    break;
+                default:
+                    break;
+            }
+        });
+    
+        // Check for straights
+        const sortedValues = [...new Set(diceValues)].sort((a, b) => a - b);
+        if (sortedValues.length === 6) {
+            hands.push('Long Straight (2000 points)');
+        } else if (sortedValues.length === 5 && sortedValues[4] - sortedValues[0] === 4) {
+            hands.push('Short Straight (1500 points)');
+        }
+    
+        // Check for full house
+        const pairs = Object.values(counts).filter(count => count === 2).length;
+        const threes = Object.values(counts).filter(count => count === 3).length;
+        if (pairs === 3 || (pairs === 1 && threes === 1)) {
+            hands.push('Full House (1500 points)');
+        }
+    
+        return hands;
     }
 
     function updateScoreDisplay() {
@@ -92,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[value] = (acc[value] || 0) + 1;
             return acc;
         }, {});
+
+        const results =[];
     
         // Check for five of a kind first
         Object.keys(counts).forEach(num => {
@@ -142,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             score += counts['5'] * 50; // Each remaining 5 is worth 50 points
             counts['5'] = 0;
         }
-    
+        results.forEach(result => score += result.score);
         return score;
     }
 

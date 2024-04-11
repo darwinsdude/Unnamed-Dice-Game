@@ -5,10 +5,19 @@ export class CustomDice {
         this.specialSides = specialSides;
         this.images = images; // Store images for each side
         this.selected = false; // Add selected property
+        this.setAside = false; // Add set aside property
+    }
+
+    toggleSetAside() {
+        if (this.selected) { // Only toggle set aside if it is currently selected
+            this.setAside = !this.setAside;
+        }
     }
 
     roll() {
-        this.currentValue = Math.floor(Math.random() * this.sides) + 1;
+        if (!this.setAside) { // Dice can only be rolled if it is not set aside
+            this.currentValue = Math.floor(Math.random() * this.sides) + 1;
+        }
         return this.currentValue;
     }
 
@@ -52,6 +61,15 @@ export class CustomDice {
     }
 
     toggleSelected() {
-        this.selected = !this.selected;
+        if (!this.setAside) { // Only toggle selection if not set aside
+            this.selected = !this.selected;
+        }
     }
+
+    reset(startValue = 1) {
+        this.currentValue = startValue;
+        this.selected = false;
+        this.setAside = false; // Reset the set aside state as well
+    }
+
 }

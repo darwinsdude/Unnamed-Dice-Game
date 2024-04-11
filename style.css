@@ -125,3 +125,8 @@ header div {
 #setAsideButton:hover {
     background-color: #007B9A; /* Darker blue on hover */
 }
+
+.diceImage.set-aside {
+    filter: grayscale(100%);  
+    border: 3px solid blue;  
+}
