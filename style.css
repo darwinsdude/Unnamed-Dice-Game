@@ -109,3 +109,19 @@ header div {
 #bankPointsButton:hover {
     background-color: #45a049; /* Darker green on hover */
 }
+
+#setAsideButton {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #008CBA; /* Example color: blue */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    display: none; /* Start hidden */
+}
+
+#setAsideButton:hover {
+    background-color: #007B9A; /* Darker blue on hover */
+}
