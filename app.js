@@ -120,73 +120,74 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[value] = (acc[value] || 0) + 1;
             return acc;
         }, {});
-    
         const descriptions = [];
     
-        // First check for combinations that supersede individual scores
-        Object.keys(counts).forEach(num => {
-            const count = counts[num];
-            switch (count) {
-                case 3:
-                    if (num === '1' || num === '5') {
-                        descriptions.push(`Three ${num}s (${num === '1' ? 1000 : 500} points)`);
-                        delete counts[num]; // Remove these counts to prevent further individual scoring
-                    }
-                    break;
-                case 4:
-                    if (num === '2') {
-                        descriptions.push(`Four 2s (-1000 points penalty)`);
-                    } else {
-                        descriptions.push(`Four ${num}s (${num === '1' ? 2000 : parseInt(num) * 200} points)`);
-                    }
-                    delete counts[num]; // Prevent further individual scoring
-                    break;
-                case 5:
-                    descriptions.push(`Five ${num}s (5000 points)`);
-                    delete counts[num]; // Prevent further individual scoring
-                    break;
-                case 6:
-                    descriptions.push(`Six ${num}s (Instant win!)`);
-                    delete counts[num]; // Prevent further individual scoring
-                    break;
-            }
-        });
-    
-        // Now handle individual scores if not part of a larger scoring group
-        if (counts[1]) {
-            const points = 100;
-            const countText = counts[1] > 1 ? ` x ${counts[1]}` : '';
-            descriptions.push(`Single 1 (100 points)${countText}`);
-        }
-        if (counts[5]) {
-            const points = 50;
-            const countText = counts[5] > 1 ? ` x ${counts[5]}` : '';
-            descriptions.push(`Single 5 (50 points)${countText}`);
-        }
-    
-        // Check for straights and full houses if no large multiples counted
-        const uniqueValues = [...new Set(diceValues.map(Number))].sort((a, b) => a - b);
-        const isLongStraight = uniqueValues.length === 6 && uniqueValues[5] - uniqueValues[0] === 5;
+        // Check for straights and full house first as they are exclusive
+        const uniqueValues = [...new Set(diceValues)].sort((a, b) => a - b);
+        const isLongStraight = uniqueValues.length === 6;
         const isShortStraight = uniqueValues.length === 5 && uniqueValues[4] - uniqueValues[0] === 4;
+        const fullHouseCheck = checkForFullHouse(counts);
     
         if (isLongStraight) {
             descriptions.push('Long Straight (2000 points)');
+            return descriptions; // Return immediately to prevent adding other scores
         } else if (isShortStraight) {
             descriptions.push('Short Straight (1500 points)');
+            return descriptions; // Return immediately to prevent adding other scores
+        } else if (fullHouseCheck) {
+            descriptions.push('Full House (1500 points)');
+            return descriptions; // Return immediately to prevent adding other scores
         }
     
-        const isFullHouse = checkForFullHouse(counts);
-        if (isFullHouse) {
-            descriptions.push('Full House (1500 points)');
-        }
+        // Handle individual scores for 1s and 5s
+        ['1', '5'].forEach(num => {
+            if (counts[num] && !isShortStraight && !isLongStraight && !fullHouseCheck) {
+                const points = num === '1' ? 100 : 50;
+                const countText = counts[num] > 1 ? ` x ${counts[num]}` : '';
+                descriptions.push(`Single ${num} (${points} points)${countText}`);
+                delete counts[num]; // Remove these counts to prevent further scoring
+            }
+        });
+    
+        // Handle multiples for other numbers
+        Object.keys(counts).forEach(num => {
+            const count = counts[num];
+            if (count === 3) {
+                const points = num === '1' ? 1000 : num * 100;
+                descriptions.push(`Three ${num}s (${points} points)`);
+            } else if (count === 4) {
+                const points = num === '1' ? 2000 : num * 200;
+                descriptions.push(`Four ${num}s (${points} points)`);
+            } else if (count === 5) {
+                descriptions.push('Five of a Kind (5000 points)');
+            } else if (count === 6) {
+                descriptions.push('Six of a Kind (Instant Win!)');
+            }
+        });
     
         return descriptions;
     }
     
-    function checkForFullHouse(counts) {
-        const values = Object.values(counts);
-        return values.includes(3) && values.includes(2);
+    
+       
+    
+    function isFullHouse(diceValues) {
+        const counts = diceValues.reduce((acc, value) => {
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {});
+    
+        // Full House is three pairs of different numbers
+        return Object.values(counts).filter(count => count === 2).length === 3;
     }
+    
+    
+    function checkForFullHouse(counts) {
+        // Check that there are exactly three pairs (i.e., three values of 2)
+        const pairs = Object.values(counts).filter(count => count === 2);
+        return pairs.length === 3;
+    }
+    
     
 
     function updateScoreDisplay() {
@@ -207,59 +208,42 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[value] = (acc[value] || 0) + 1;
             return acc;
         }, {});
-
-        const results =[];
     
-        // Check for five of a kind first
-        Object.keys(counts).forEach(num => {
-            if (counts[num] === 5) {
-                score += 5000; // Flat 5000 points for five of a kind
-                counts[num] = 0; // Remove these from consideration for further scoring
-            }
-        });
+        // Check for Full House first since it's an exclusive condition
+        if (checkForFullHouse(counts)) {
+            return 1500;
+        }
     
-        // Check for four of a kind
-        Object.keys(counts).forEach(num => {
-            if (counts[num] === 4) {
-                score += (num === '1') ? 2000 : (num === '5') ? 1000 : parseInt(num) * 200; // Four of a kind
-                counts[num] = 0;
-            }
-        });
-    
-        // Evaluate for straights (prioritize straights over three-of-a-kinds due to their higher rarity)
+        // Then check for straights since they don't combine with other scores
         const sortedValues = [...new Set(diceValues)].sort((a, b) => a - b);
         if (sortedValues.length === 6) {
-            score += 2000; // Long straight
-            return score; // End evaluation if a long straight is present
+            return 2000; // Long straight
         } else if (sortedValues.length === 5 && sortedValues[4] - sortedValues[0] === 4) {
-            score += 1500; // Small straight
-            // No return here to allow scoring of additional dice
+            return 1500; // Short straight
         }
     
-        // Check for a full house
-        const pairCounts = Object.values(counts).filter(count => count === 2);
-        if (pairCounts.length === 3) {
-            return score + 1500; // Add score for a full house and end scoring
-        }
-    
-        // Score multiple three-of-a-kinds
-        Object.keys(counts).forEach(num => {
-            while (counts[num] >= 3) {
-                score += (num === '1') ? 1000 : (num === '5') ? 500 : parseInt(num) * 100;
-                counts[num] -= 3; // Reduce the count by three after scoring
+        // Handle scoring for individual 1s and 5s
+        ['1', '5'].forEach(num => {
+            if (counts[num]) {
+                score += counts[num] * (num === '1' ? 100 : 50);
+                counts[num] = 0; // Reset the count to avoid double scoring
             }
         });
     
-        // Score any remaining individual 1s and 5s
-        if (counts['1'] > 0) {
-            score += counts['1'] * 100; // Each remaining 1 is worth 100 points
-            counts['1'] = 0;
-        }
-        if (counts['5'] > 0) {
-            score += counts['5'] * 50; // Each remaining 5 is worth 50 points
-            counts['5'] = 0;
-        }
-        results.forEach(result => score += result.score);
+        // Handle multiples of other numbers
+        Object.keys(counts).forEach(num => {
+            const count = counts[num];
+            if (count === 3) {
+                score += num === '1' ? 1000 : num * 100;
+            } else if (count === 4) {
+                score += num === '2' ? -1000 : num === '1' ? 2000 : num * 200;
+            } else if (count === 5) {
+                score += 5000;
+            } else if (count === 6) {
+                score += 10000; // Instant win
+            }
+        });
+    
         return score;
     }
 
