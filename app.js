@@ -123,93 +123,71 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const descriptions = [];
     
-        // Handle multiples
+        // First check for combinations that supersede individual scores
         Object.keys(counts).forEach(num => {
-            if (counts[num] === 3 && num === '1') {
-                descriptions.push('Three 1s (1000 points)');
-            } else if (counts[num] === 3) {
-                descriptions.push(`Three ${num}s (${num * 100} points)`);
-            } else if (counts[num] === 1 && num === '1') {
-                descriptions.push('Single 1 (100 points)');
-            } else if (counts[num] === 2 && num === '1') {
-                descriptions.push('Single 1 (100 points)', 'Single 1 (100 points)');
+            const count = counts[num];
+            switch (count) {
+                case 3:
+                    if (num === '1' || num === '5') {
+                        descriptions.push(`Three ${num}s (${num === '1' ? 1000 : 500} points)`);
+                        delete counts[num]; // Remove these counts to prevent further individual scoring
+                    }
+                    break;
+                case 4:
+                    if (num === '2') {
+                        descriptions.push(`Four 2s (-1000 points penalty)`);
+                    } else {
+                        descriptions.push(`Four ${num}s (${num === '1' ? 2000 : parseInt(num) * 200} points)`);
+                    }
+                    delete counts[num]; // Prevent further individual scoring
+                    break;
+                case 5:
+                    descriptions.push(`Five ${num}s (5000 points)`);
+                    delete counts[num]; // Prevent further individual scoring
+                    break;
+                case 6:
+                    descriptions.push(`Six ${num}s (Instant win!)`);
+                    delete counts[num]; // Prevent further individual scoring
+                    break;
             }
         });
     
-        // Handle straights and full houses
-        if (isStraight(diceValues)) {
-            descriptions.push('Straight (1500 points)');
+        // Now handle individual scores if not part of a larger scoring group
+        if (counts[1]) {
+            const points = 100;
+            const countText = counts[1] > 1 ? ` x ${counts[1]}` : '';
+            descriptions.push(`Single 1 (100 points)${countText}`);
         }
-        if (isFullHouse(diceValues)) {
+        if (counts[5]) {
+            const points = 50;
+            const countText = counts[5] > 1 ? ` x ${counts[5]}` : '';
+            descriptions.push(`Single 5 (50 points)${countText}`);
+        }
+    
+        // Check for straights and full houses if no large multiples counted
+        const uniqueValues = [...new Set(diceValues.map(Number))].sort((a, b) => a - b);
+        const isLongStraight = uniqueValues.length === 6 && uniqueValues[5] - uniqueValues[0] === 5;
+        const isShortStraight = uniqueValues.length === 5 && uniqueValues[4] - uniqueValues[0] === 4;
+    
+        if (isLongStraight) {
+            descriptions.push('Long Straight (2000 points)');
+        } else if (isShortStraight) {
+            descriptions.push('Short Straight (1500 points)');
+        }
+    
+        const isFullHouse = checkForFullHouse(counts);
+        if (isFullHouse) {
             descriptions.push('Full House (1500 points)');
         }
     
         return descriptions;
     }
     
-    function isStraight(diceValues) {
-        const uniqueValues = [...new Set(diceValues)];
-        return uniqueValues.length === 6 && Math.max(...uniqueValues) - Math.min(...uniqueValues) === 5;
+    function checkForFullHouse(counts) {
+        const values = Object.values(counts);
+        return values.includes(3) && values.includes(2);
     }
     
-    function isFullHouse(diceValues) {
-        const counts = Object.values(diceValues.reduce((acc, value) => {
-            acc[value] = (acc[value] || 0) + 1;
-            return acc;
-        }, {}));
-        return counts.filter(count => count === 3).length === 1 && counts.filter(count => count === 2).length === 1;
-    }
-    
-    
-    function identifyScoringHands(diceValues) {
-        let counts = diceValues.reduce((acc, value) => {
-            acc[value] = (acc[value] || 0) + 1;
-            return acc;
-        }, {});
-    
-        let hands = [];
-        Object.keys(counts).forEach(num => {
-            switch (counts[num]) {
-                case 1:
-                    if (num === '1') hands.push('Single 1 (100 points)');
-                    if (num === '5') hands.push('Single 5 (50 points)');
-                    break;
-                case 2:
-                    // Pair might not be a scoring hand unless it's part of a full house
-                    break;
-                case 3:
-                    if (num === '1') hands.push('Three 1s (1000 points)');
-                    else if (num === '5') hands.push('Three 5s (500 points)');
-                    else hands.push(`Three ${num}s (${num * 100} points)`);
-                    break;
-                case 4:
-                    hands.push(`Four of a Kind (${num}s)`);
-                    break;
-                case 5:
-                    hands.push('Five of a Kind');
-                    break;
-                default:
-                    break;
-            }
-        });
-    
-        // Check for straights
-        const sortedValues = [...new Set(diceValues)].sort((a, b) => a - b);
-        if (sortedValues.length === 6) {
-            hands.push('Long Straight (2000 points)');
-        } else if (sortedValues.length === 5 && sortedValues[4] - sortedValues[0] === 4) {
-            hands.push('Short Straight (1500 points)');
-        }
-    
-        // Check for full house
-        const pairs = Object.values(counts).filter(count => count === 2).length;
-        const threes = Object.values(counts).filter(count => count === 3).length;
-        if (pairs === 3 || (pairs === 1 && threes === 1)) {
-            hands.push('Full House (1500 points)');
-        }
-    
-        return hands;
-    }
 
     function updateScoreDisplay() {
         currentScoreSpan.textContent = currentScore;
