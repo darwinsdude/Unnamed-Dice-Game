@@ -72,4 +72,13 @@ export class CustomDice {
         this.setAside = false; // Reset the set aside state as well
     }
 
+    setCurrentValue(value) {
+        if (!this.setAside) { // Only set value if dice is not set aside
+            if (value >= 1 && value <= this.sides) {
+                this.currentValue = value;
+            } else {
+                console.error('Invalid value for dice side');
+            }
+        }
+    }
 }
