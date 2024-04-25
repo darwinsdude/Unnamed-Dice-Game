@@ -3,6 +3,7 @@ import { CustomDice } from './CustomDice.js';
 let diceRolled = false; // Flag to track if the "Roll Dice" has been clicke
 let currentScore = 0;
 let winningScore = 10000; // Default winning score, can be adjusted by the player
+let accumulatedPossiblePoints = 0;
 const dice = [];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -37,25 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('setAsideButton').addEventListener('click', () => {
         dice.forEach((die, index) => {
             if (die.selected) {
-                die.toggleSetAside();  // This will now correctly toggle the set aside state
-                if (die.setAside) { // Check if the die is now set aside
+                die.toggleSetAside();
+                if (die.setAside) {
                     diceImages[index].classList.add('set-aside');
                     diceImages[index].classList.remove('selected');
-                    die.selected = false; // Ensure the die is no longer marked as selected
+                    die.selected = false;
                 }
             }
         });
-        updatePossiblePointsAndIndicators();  // Recalculate scores with set aside dice excluded
-    }); // This closing parenthesis ends the addEventListener call
+        updatePossiblePointsAndIndicators();
+    });
     
 
     document.getElementById('rollButton').addEventListener('click', () => {
         diceRolled = true;
-    dice.forEach(die => {
-        if (!die.setAside) {
-            die.roll();
-        }
-    });
+        accumulatedPossiblePoints = 0; // Reset accumulated possible points
+        dice.forEach(die => {
+            if (!die.setAside) {
+                die.roll();
+            }
+        });
 
 
         // Update dice images
@@ -90,18 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     bankPointsButton.addEventListener('click', () => {
-        const scoreForSelection = parseInt(document.getElementById('possiblePoints').textContent, 10);
-        currentScore += scoreForSelection;
+        currentScore += accumulatedPossiblePoints;
         updateScoreDisplay();
-        resetSelections(); // Reset selections and prepare for next action
-        document.getElementById('possiblePoints').textContent = '0';
-        bankPointsButton.style.display = 'none'; // Hide the bank points button until next valid selection
+        resetSelections();
+        accumulatedPossiblePoints = 0; // Reset accumulated possible points
+        document.getElementById('possiblePoints').textContent = accumulatedPossiblePoints;
+        bankPointsButton.style.display = 'none';
     });
 
     function updatePossiblePointsAndIndicators() {
         const selectedDiceValues = dice.filter(die => die.selected && !die.setAside).map(die => die.getValue());
         const scoreForSelection = calculateScore(selectedDiceValues);
-        document.getElementById('possiblePoints').textContent = scoreForSelection;
+        accumulatedPossiblePoints += scoreForSelection;
+        document.getElementById('possiblePoints').textContent = accumulatedPossiblePoints;
     
         // Identify and display scoring hands dynamically
         const scoringDescriptions = getScoringDescriptions(selectedDiceValues);
