@@ -1,6 +1,6 @@
 import { CustomDice } from './CustomDice.js';
 
-let diceRolled = false; // Flag to track if the "Roll Dice" has been clicke
+let diceRolled = false; // Flag to track if the "Roll Dice" has been clicked
 let currentScore = 0;
 let winningScore = 10000; // Default winning score, can be adjusted by the player
 let accumulatedPossiblePoints = 0;
@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('setAsideButton').addEventListener('click', () => {
+        const allDiceSelected = dice.every(die => die.selected);
+        const allDiceScoring = allDiceSelected && dice.every(die => calculateScore([die.getValue()]) > 0);
+
         dice.forEach((die, index) => {
             if (die.selected) {
                 die.toggleSetAside();
@@ -46,19 +49,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        if (allDiceScoring) {
+            // If all dice are set aside and scoring, unlock all dice for re-roll
+            dice.forEach(die => {
+                die.setAside = false;
+                die.selected = false;
+            });
+            diceImages.forEach(img => img.classList.remove('set-aside', 'selected'));
+        }
+
         updatePossiblePointsAndIndicators();
     });
     
 
     document.getElementById('rollButton').addEventListener('click', () => {
         diceRolled = true;
-        accumulatedPossiblePoints = 0; // Reset accumulated possible points
         dice.forEach(die => {
             if (!die.setAside) {
                 die.roll();
             }
         });
-
 
         // Update dice images
         diceImages.forEach((img, index) => {
@@ -105,10 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const scoreForSelection = calculateScore(selectedDiceValues);
         
         // Update accumulated possible points based on the current selection
-        if (scoreForSelection > 0) {
-            accumulatedPossiblePoints = scoreForSelection;
-        } else {
+        if (scoreForSelection === 0) {
+            // If the current selection has no score, reset the accumulated possible points
             accumulatedPossiblePoints = 0;
+        } else {
+            // If the current selection has a score, update the accumulated possible points
+            accumulatedPossiblePoints = scoreForSelection;
         }
         
         document.getElementById('possiblePoints').textContent = accumulatedPossiblePoints;
@@ -123,16 +136,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return value === 1 || value === 5 || count >= 3;
         });
         
-        // Check if the selection is a short straight with an additional scoring die
-        const isShortStraightWithExtra = scoringDescriptions.includes('Short Straight (1500 points)') && selectedDiceValues.length === 6;
+        // Check if the selection is a short straight with additional non-scoring dice
+        const isShortStraightWithExtra = scoringDescriptions.includes('Short Straight (1500 points)') && selectedDiceValues.length < 6;
         
-        // Check if the selection is a 4 of a kind or 5 of a kind with additional dice
+        // Check if the selection is a 4 of a kind or 5 of a kind with additional non-scoring dice
         const isFourOrFiveOfAKindWithExtra = (
             scoringDescriptions.some(desc => desc.startsWith('Four') || desc.startsWith('Five')) &&
-            selectedDiceValues.length > 4
+            selectedDiceValues.length < 6
         );
         
-        const shouldDisplaySetAside = (isValidSelection || isShortStraightWithExtra || isFourOrFiveOfAKindWithExtra) && dice.some(die => die.selected && !die.setAside);
+        // Check if the selection reaches the 750-point threshold with additional non-scoring dice
+        const isThresholdWithExtra = accumulatedPossiblePoints >= 750 && selectedDiceValues.length < 6;
+        
+        const shouldDisplaySetAside = (isValidSelection || isShortStraightWithExtra || isFourOrFiveOfAKindWithExtra || isThresholdWithExtra) && dice.some(die => die.selected && !die.setAside);
         document.getElementById('setAsideButton').style.display = shouldDisplaySetAside ? 'block' : 'none';
     
         bankPointsButton.style.display = accumulatedPossiblePoints >= 750 ? 'block' : 'none';
