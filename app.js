@@ -122,7 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const count = selectedDiceValues.filter(v => v === value).length;
             return value === 1 || value === 5 || count >= 3;
         });
-        const shouldDisplaySetAside = isValidSelection && dice.some(die => die.selected && !die.setAside);
+        
+        // Check if the selection is a short straight with an additional scoring die
+        const isShortStraightWithExtra = scoringDescriptions.includes('Short Straight (1500 points)') && selectedDiceValues.length === 6;
+        
+        // Check if the selection is a 4 of a kind or 5 of a kind with additional dice
+        const isFourOrFiveOfAKindWithExtra = (
+            scoringDescriptions.some(desc => desc.startsWith('Four') || desc.startsWith('Five')) &&
+            selectedDiceValues.length > 4
+        );
+        
+        const shouldDisplaySetAside = (isValidSelection || isShortStraightWithExtra || isFourOrFiveOfAKindWithExtra) && dice.some(die => die.selected && !die.setAside);
         document.getElementById('setAsideButton').style.display = shouldDisplaySetAside ? 'block' : 'none';
     
         bankPointsButton.style.display = accumulatedPossiblePoints >= 750 ? 'block' : 'none';
