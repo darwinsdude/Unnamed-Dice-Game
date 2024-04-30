@@ -35,10 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 
-    document.getElementById('setAsideButton').addEventListener('click', () => {
-        const allDiceSelected = dice.every(die => die.selected);
-        const allDiceScoring = allDiceSelected && dice.every(die => calculateScore([die.getValue()]) > 0);
+    let turnScore = 0; // Variable to store the accumulated score within a turn
 
+    document.getElementById('setAsideButton').addEventListener('click', () => {
+        const allDiceScoring = dice.every(die => die.selected && calculateScore([die.getValue()]) > 0);
+    
         dice.forEach((die, index) => {
             if (die.selected) {
                 die.toggleSetAside();
@@ -49,16 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-
+    
         if (allDiceScoring) {
-            // If all dice are set aside and scoring, unlock all dice for re-roll
+            // If all six dice are set aside and scoring, un-set aside all dice for re-roll
             dice.forEach(die => {
                 die.setAside = false;
                 die.selected = false;
             });
             diceImages.forEach(img => img.classList.remove('set-aside', 'selected'));
         }
-
+    
+        // Add the current selection score to the turn score
+        turnScore += accumulatedPossiblePoints;
+    
         updatePossiblePointsAndIndicators();
     });
     
@@ -116,15 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const scoreForSelection = calculateScore(selectedDiceValues);
         
         // Update accumulated possible points based on the current selection
-        if (scoreForSelection === 0) {
-            // If the current selection has no score, reset the accumulated possible points
-            accumulatedPossiblePoints = 0;
-        } else {
-            // If the current selection has a score, update the accumulated possible points
-            accumulatedPossiblePoints = scoreForSelection;
-        }
+        accumulatedPossiblePoints = scoreForSelection;
         
-        document.getElementById('possiblePoints').textContent = accumulatedPossiblePoints;
+        document.getElementById('possiblePoints').textContent = turnScore + accumulatedPossiblePoints;
     
         // Identify and display scoring hands dynamically
         const scoringDescriptions = getScoringDescriptions(selectedDiceValues);
