@@ -103,7 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePossiblePointsAndIndicators() {
         const selectedDiceValues = dice.filter(die => die.selected && !die.setAside).map(die => die.getValue());
         const scoreForSelection = calculateScore(selectedDiceValues);
-        accumulatedPossiblePoints += scoreForSelection;
+        
+        // Update accumulated possible points based on the current selection
+        if (scoreForSelection > 0) {
+            accumulatedPossiblePoints = scoreForSelection;
+        } else {
+            accumulatedPossiblePoints = 0;
+        }
+        
         document.getElementById('possiblePoints').textContent = accumulatedPossiblePoints;
     
         // Identify and display scoring hands dynamically
@@ -111,11 +118,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('selectedCombination').textContent = scoringDescriptions.join(", ");
     
         // Determine the validity of the selection for setting aside
-        const isValidSelection = scoringDescriptions.length > 0;
-        const shouldDisplaySetAside = isValidSelection && dice.some(die => die.selected && !die.setAside) && scoreForSelection > 0;
+        const isValidSelection = scoringDescriptions.length > 0 && selectedDiceValues.every(value => {
+            const count = selectedDiceValues.filter(v => v === value).length;
+            return value === 1 || value === 5 || count >= 3;
+        });
+        const shouldDisplaySetAside = isValidSelection && dice.some(die => die.selected && !die.setAside);
         document.getElementById('setAsideButton').style.display = shouldDisplaySetAside ? 'block' : 'none';
     
-        bankPointsButton.style.display = scoreForSelection >= 750 ? 'block' : 'none';
+        bankPointsButton.style.display = accumulatedPossiblePoints >= 750 ? 'block' : 'none';
     }
     
     function getScoringDescriptions(diceValues) {
